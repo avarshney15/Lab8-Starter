@@ -50,13 +50,19 @@ self.addEventListener('fetch', function (event) {
         return cachedResponse;
       }
 
-      const responseClone = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
+      // If the request hasn't been cached, make a network request and cache the result.
+      return fetch(event.request).then(function (networkResponse) {
+      // Clone the response before putting it into the cache
+      const responseToCache = networkResponse.clone();
+      
+        // Open the cache and put the cloned response into it for future requests.
+        caches.open(CACHE_NAME).then(function (cache) {
+          cache.put(event.request, responseToCache);
         });
-
+  
+        // Return the network response to the original requestor.
         return networkResponse;
-
+      });
     })
   );
 });
